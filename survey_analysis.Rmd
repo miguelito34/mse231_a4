@@ -1,0 +1,73 @@
+---
+title: "Survey Analysis"
+author: "Michael Spencer, Foster Docherty, Jorge Nam Song"
+date: "11/14/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Setup
+
+### Libraries
+```{r}
+if(!require(tidyverse)) install.packages("tidyverse")
+library(tidyverse)
+```
+
+### Parameters
+```{r}
+path_data <- "Batch_3835086_batch_results.csv"
+```
+
+### Load Data
+```{r}
+data_raw <-
+	path_data %>% 
+	read_csv()
+
+View(data_raw)
+
+data_raw %>% colnames()
+```
+
+### Prep & Clean Data
+```{r}
+old_names <- data_raw %>% select(starts_with("Answer.")) %>% colnames()
+new_names <- 
+	str_replace_all(
+		old_names, 
+		pattern = "Answer.|.TRUE", 
+		replacement = ""
+	)
+
+data_raw %>% 
+	select(
+		id = WorkerId, 
+		start = AcceptTime, 
+		submit = SubmitTime, 
+		total_time = WorkTimeInSeconds, 
+		starts_with("Answer.")
+	) %>% 
+	rename_at(vars(old_names), ~ new_names) %>% 
+	group_by(id) %>% 
+	gather(
+		key = "variable", 
+		value = "var_log", 
+		starts_with("age_"),
+		starts_with("education_"),
+		starts_with("familiarity_"),
+		starts_with("race_"),
+		starts_with("sex_")
+		) %>%
+	arrange(id) %>% 
+	filter(var_log) %>% 
+	select(-var_log) %>% 
+	separate(variable, into = c("demographic", "response"), sep = "_") %>% 
+	spread(key = demographic, value = response)
+```
+
+## Analysis
