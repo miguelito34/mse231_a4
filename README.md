@@ -91,5 +91,5 @@ Data was contained by distributing the above survey to 200 users of the Amazon M
 ### Replication
 To replicate the analysis and statistical adjustments, run the following command:
 ```
-Rscript -e "rmarkdown::render('survey_analysis.Rmd')"
+Rscript survey_analysis.R
 ```

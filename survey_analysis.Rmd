@@ -115,8 +115,28 @@ data
 
 \newpage
 ```{r, echo=FALSE}
-## Analysis
-### Survey Demographics
+# Analysis
+# Examine Demographics
+
+# Sex
+data %>%
+  filter(attention == 4, !is.na(sex)) %>%
+  count(sex) %>%
+  mutate(
+    sex_prop = n / sum(n)
+  ) %>%
+  ggplot(aes(x = sex, y = sex_prop)) +
+  geom_col() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Respondents' Sex",
+    y = "Proportion of Survey",
+    x = "Sex",
+    caption = "\nResponses only include those that passed our attention test."
+  )
 
 # Race
 data %>%
@@ -138,9 +158,27 @@ data %>%
     x = "Race/Ethnicity",
     caption = "\nResponses only include those that passed our attention test."
   )
-```
 
-```{r, echo=FALSE}
+# Education
+data %>%
+  filter(attention == 4, !is.na(education)) %>%
+  count(education) %>%
+  mutate(
+    ed_prop = n / sum(n)
+  ) %>%
+  ggplot(aes(x = education, y = ed_prop)) +
+  geom_col() +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Respondents' Education Level",
+    y = "Proportion of Survey",
+    x = "Education",
+    caption = "\nResponses only include those that passed our attention test."
+  )
+
 # Age
 data %>%
   filter(attention == 4, !is.na(age)) %>%
@@ -163,53 +201,7 @@ data %>%
 ```
 
 ```{r, echo=FALSE}
-# Education
-data %>%
-  filter(attention == 4, !is.na(education)) %>%
-  count(education) %>%
-  mutate(
-    ed_prop = n / sum(n)
-  ) %>%
-  ggplot(aes(x = education, y = ed_prop)) +
-  geom_col() +
-  scale_y_continuous(
-    labels = scales::percent_format(accuracy = 1)
-  ) +
-  theme_minimal() +
-  labs(
-    title = "Distribution of Respondents' Education Level",
-    y = "Proportion of Survey",
-    x = "Education",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-```
-
-```{r, echo=FALSE}
-# Sex
-data %>%
-  filter(attention == 4, !is.na(sex)) %>%
-  count(sex) %>%
-  mutate(
-    sex_prop = n / sum(n)
-  ) %>%
-  ggplot(aes(x = sex, y = sex_prop)) +
-  geom_col() +
-  scale_y_continuous(
-    labels = scales::percent_format(accuracy = 1)
-  ) +
-  theme_minimal() +
-  labs(
-    title = "Distribution of Respondents' Sex",
-    y = "Proportion of Survey",
-    x = "Sex",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-```
-
-```{r, echo=FALSE}
-### Substantive Questions
-
-#### Familiarity
+# Substantive Questions
 
 # Familiarity with 311
 avg_familiarity <- 
@@ -218,6 +210,30 @@ avg_familiarity <-
 	pull(familiarity) %>% 
 	mean(na.rm = TRUE)
 
+# Familiarity with 311 by sex
+data %>% 
+	filter(attention == 4, !is.na(familiarity), !is.na(sex)) %>% 
+	group_by(sex) %>% 
+	summarize(avg_fam = mean(familiarity)) %>% 
+	ggplot(aes(x = sex, y = avg_fam)) +
+	geom_hline(yintercept = avg_familiarity, linetype = 2) +
+	geom_col() +
+	coord_cartesian(ylim = c(0, 4)) +
+	annotate(
+		"text", 
+		x = "female", 
+		y = avg_familiarity, 
+		label = "Average Familiarity\nfor All",
+		vjust = 0
+	) +
+	theme_minimal() +
+  labs(
+    title = "Average 311 Familiarity by Sex",
+    y = "Average Familiarity\n(from 0-4)",
+    x = "Sex",
+    caption = "\nResponses only include those that passed our attention test."
+  )
+
 # Familiarity with 311 by race
 data %>% 
 	filter(attention == 4, !is.na(familiarity), !is.na(race)) %>% 
@@ -225,8 +241,9 @@ data %>%
 	summarize(avg_fam = mean(familiarity)) %>% 
 	mutate(race = str_to_title(race) %>%  fct_reorder(avg_fam)) %>% 
 	ggplot(aes(x = race, y = avg_fam)) +
+	geom_hline(yintercept = avg_familiarity, linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_familiarity, linetype = 2, color = "red") +
+	coord_cartesian(ylim = c(0, 4)) +
 	annotate(
 		"text", 
 		x = "Black", 
@@ -241,37 +258,15 @@ data %>%
     caption = "\nResponses only include those that passed our attention test."
   )
 
-# Familiarity with 311 by age
-data %>% 
-	filter(attention == 4, !is.na(familiarity), !is.na(age)) %>% 
-	group_by(age) %>% 
-	summarize(avg_fam = mean(familiarity)) %>% 
-	ggplot(aes(x = age, y = avg_fam)) +
-	geom_col() +
-	geom_hline(yintercept = avg_familiarity, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "45-49", 
-		y = avg_familiarity, 
-		label = "Average\nFamiliarity for All",
-		hjust = 0
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average 311 Familiarity by Age",
-    y = "Average Familiarity\n(from 0-4)",
-    x = "Age",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
 # Familiarity with 311 by education
 data %>% 
 	filter(attention == 4, !is.na(familiarity), !is.na(education)) %>% 
 	group_by(education) %>% 
 	summarize(avg_fam = mean(familiarity)) %>% 
 	ggplot(aes(x = education, y = avg_fam)) +
+	geom_hline(yintercept = avg_familiarity, linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_familiarity, linetype = 2, color = "red") +
+	coord_cartesian(ylim = c(0, 4)) +
 	annotate(
 		"text", 
 		x = "high school graduate", 
@@ -286,334 +281,158 @@ data %>%
     caption = "\nResponses only include those that passed our attention test."
   )
 
-# Familiarity with 311 by sex
+# Familiarity with 311 by age
 data %>% 
-	filter(attention == 4, !is.na(familiarity), !is.na(sex)) %>% 
-	group_by(sex) %>% 
+	filter(attention == 4, !is.na(familiarity), !is.na(age)) %>% 
+	group_by(age) %>% 
 	summarize(avg_fam = mean(familiarity)) %>% 
-	ggplot(aes(x = sex, y = avg_fam)) +
+	ggplot(aes(x = age, y = avg_fam)) +
+	geom_hline(yintercept = avg_familiarity, linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_familiarity, linetype = 2, color = "red") +
+	coord_cartesian(ylim = c(0, 4)) +
 	annotate(
 		"text", 
-		x = "female", 
+		x = "45-49", 
 		y = avg_familiarity, 
-		label = "Average Familiarity\nfor All", 
+		label = "Average\nFamiliarity for All",
+		hjust = 0,
+		vjust = 0
 	) +
 	theme_minimal() +
   labs(
-    title = "Average 311 Familiarity by Sex",
+    title = "Average 311 Familiarity by Age",
     y = "Average Familiarity\n(from 0-4)",
-    x = "Sex",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-```
-
-```{r echo=FALSE}
-#### Noise Complaint
-
-# Willingness to make a noise complaint
-avg_noise_complaint <- 
-	data %>% 
-	filter(attention == 4) %>% 
-	pull(noise_complaint) %>% 
-	mean(na.rm = TRUE)
-
-# Willingness to make a noise complaint by race
-data %>% 
-	filter(attention == 4, !is.na(noise_complaint), !is.na(race)) %>% 
-	group_by(race) %>% 
-	summarize(avg_noise = mean(noise_complaint)) %>% 
-	mutate(race = str_to_title(race) %>%  fct_reorder(avg_noise)) %>% 
-	ggplot(aes(x = race, y = avg_noise)) +
-	geom_col() +
-	geom_hline(yintercept = avg_noise_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text",
-		x = "White",
-		y = avg_noise_complaint + .25,
-		label = "Avg. Willingness to\nFile Noise Complaint"
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Noise Complaint via 311 by Race",
-    y = "Average Willingess to Make a Noise Complaint\n(from 0-5)",
-    x = "Race",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a noise complaint by age
-data %>% 
-	filter(attention == 4, !is.na(noise_complaint), !is.na(age)) %>% 
-	group_by(age) %>% 
-	summarize(avg_noise = mean(noise_complaint)) %>% 
-	ggplot(aes(x = age, y = avg_noise)) +
-	geom_col() +
-	geom_hline(yintercept = avg_noise_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "60-64", 
-		y = avg_noise_complaint, 
-		label = "Avg. Willingness to\nFile Noise Complaint", 
-		size = 3,
-		hjust = 0
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Noise Complaint via 311 by Age",
-    y = "Average Willingess to Make a Noise Complaint\n(from 0-5)",
     x = "Age",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a noise complaint by education
-data %>% 
-	filter(attention == 4, !is.na(noise_complaint), !is.na(education)) %>% 
-	group_by(education) %>% 
-	summarize(avg_noise = mean(noise_complaint)) %>% 
-	ggplot(aes(x = education, y = avg_noise)) +
-	geom_col() +
-	geom_hline(yintercept = avg_noise_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "high school graduate", 
-		y = avg_noise_complaint + .25, 
-		label = "Avg. Willingness to\nFile Noise Complaint", 
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Noise Complaint via 311 by Education",
-    y = "Average Willingess to Make a Noise Complaint\n(from 0-5)",
-    x = "Education",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a noise complaint by sex
-data %>% 
-	filter(attention == 4, !is.na(noise_complaint), !is.na(sex)) %>% 
-	group_by(sex) %>% 
-	summarize(avg_noise = mean(noise_complaint)) %>% 
-	ggplot(aes(x = sex, y = avg_noise)) +
-	geom_col() +
-	geom_hline(yintercept = avg_noise_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "male", 
-		y = avg_noise_complaint + .15, 
-		label = "Avg. Willingness to File Noise Complaint", 
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Noise Complaint via 311 by Sex",
-    y = "Average Willingess to Make a Noise Complaint\n(from 0-5)",
-    x = "Sex",
     caption = "\nResponses only include those that passed our attention test."
   )
 ```
 
 ```{r, echo=FALSE}
-#### Graffiti Complaint
-
-# Willingness to make a graffiti complaint
-avg_graffiti_complaint <- 
+total_pre_avg <-
 	data %>% 
-	filter(attention == 4) %>% 
-	pull(graffiti_complaint) %>% 
-	mean(na.rm = TRUE)
+	summarize(
+ 		`Act. Noise Complaint` = mean(noise_complaint, na.rm = TRUE),
+ 		`Act. Graffiti Complaint` = mean(graffiti_complaint, na.rm = TRUE),
+ 		`Act. Roadway Complaint` = mean(roadway_complaint, na.rm = TRUE),
+ 		total_pre_avg = 
+ 			mean(
+ 				`Act. Noise Complaint`,
+ 				`Act. Graffiti Complaint`,
+ 				`Act. Roadway Complaint`
+ 			)
+	) %>% 
+	pull(total_pre_avg)
 
-# Willingness to make a graffiti complaint by race
+# Questions by Sex
 data %>% 
-	filter(attention == 4, !is.na(graffiti_complaint), !is.na(race)) %>% 
-	group_by(race) %>% 
-	summarize(avg_graffiti = mean(graffiti_complaint)) %>% 
-	mutate(race = str_to_title(race) %>%  fct_reorder(avg_graffiti)) %>% 
-	ggplot(aes(x = race, y = avg_graffiti)) +
-	geom_col() +
-	geom_hline(yintercept = avg_graffiti_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text",
-		x = "White",
-		y = avg_graffiti_complaint + .25,
-		label = "Avg. Willingness to\nFile Graffiti Complaint"
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Graffiti Complaint via 311 by Race",
-    y = "Average Willingess to Make a Graffiti Complaint\n(from 0-5)",
-    x = "Race",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a graffiti complaint by age
-data %>% 
-	filter(attention == 4, !is.na(graffiti_complaint), !is.na(age)) %>% 
-	group_by(age) %>% 
-	summarize(avg_graffiti = mean(graffiti_complaint)) %>% 
-	ggplot(aes(x = age, y = avg_graffiti)) +
-	geom_col() +
-	geom_hline(yintercept = avg_graffiti_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "60-64", 
-		y = avg_graffiti_complaint, 
-		label = "Avg. Willingness to\nFile Graffiti Complaint", 
-		size = 3,
-		hjust = 0
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Graffiti Complaint via 311 by Age",
-    y = "Average Willingess to Make a Graffiti Complaint\n(from 0-5)",
-    x = "Age",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a graffiti complaint by education
-data %>% 
-	filter(attention == 4, !is.na(graffiti_complaint), !is.na(education)) %>% 
-	group_by(education) %>% 
-	summarize(avg_graffiti = mean(graffiti_complaint)) %>% 
-	ggplot(aes(x = education, y = avg_graffiti)) +
-	geom_col() +
-	geom_hline(yintercept = avg_graffiti_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "high school graduate", 
-		y = avg_graffiti_complaint, 
-		label = "Avg. Willingness to\nFile Graffiti Complaint", 
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Graffiti Complaint via 311 by Education",
-    y = "Average Willingess to Make a Graffiti Complaint\n(from 0-5)",
-    x = "Education",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a graffiti complaint by sex
-data %>% 
-	filter(attention == 4, !is.na(graffiti_complaint), !is.na(sex)) %>% 
 	group_by(sex) %>% 
-	summarize(avg_graffiti = mean(graffiti_complaint)) %>% 
-	ggplot(aes(x = sex, y = avg_graffiti)) +
+	summarize(
+ 		`Act. Noise Complaint` = mean(noise_complaint, na.rm = TRUE),
+ 		`Act. Graffiti Complaint` = mean(graffiti_complaint, na.rm = TRUE),
+ 		`Act. Roadway Complaint` = mean(roadway_complaint, na.rm = TRUE),
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Act.")
+	) %>% 
+	ggplot(aes(x = sex, y = avg_response)) +
+	geom_hline(aes(yintercept = total_pre_avg), linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_graffiti_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "male", 
-		y = avg_graffiti_complaint + .15, 
-		label = "Avg. Willingness to File Graffiti Complaint", 
-	) +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
 	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Graffiti Complaint via 311 by Sex",
-    y = "Average Willingess to Make a Graffiti Complaint\n(from 0-5)",
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Sex",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
     x = "Sex",
-    caption = "\nResponses only include those that passed our attention test."
+    caption = "\nResponses are based on statistical adjustments."
   )
-```
 
-```{r, echo=FALSE}
-#### Roadway Complaint
-
-# Willingness to make a roadway complaint
-avg_roadway_complaint <- 
-	data %>% 
-	filter(attention == 4) %>% 
-	pull(roadway_complaint) %>% 
-	mean(na.rm = TRUE)
-
-# Willingness to make a roadway complaint by race
+# Questions by Race
 data %>% 
-	filter(attention == 4, !is.na(roadway_complaint), !is.na(race)) %>% 
 	group_by(race) %>% 
-	summarize(avg_roadway = mean(roadway_complaint)) %>% 
-	mutate(race = str_to_title(race) %>%  fct_reorder(avg_roadway)) %>% 
-	ggplot(aes(x = race, y = avg_roadway)) +
+	summarize(
+ 		`Act. Noise Complaint` = mean(noise_complaint, na.rm = TRUE),
+ 		`Act. Graffiti Complaint` = mean(graffiti_complaint, na.rm = TRUE),
+ 		`Act. Roadway Complaint` = mean(roadway_complaint, na.rm = TRUE),
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Act.")
+	) %>% 
+	ggplot(aes(x = fct_reorder(race, avg_response), y = avg_response)) +
+	geom_hline(aes(yintercept = total_pre_avg), linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_roadway_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text",
-		x = "Other",
-		y = avg_roadway_complaint + .25,
-		label = "Avg. Willingness to\nFile Roadway Complaint"
-	) +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
 	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Roadway Complaint via 311 by Race",
-    y = "Average Willingess to Make a Roadway Complaint\n(from 0-5)",
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Race",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
     x = "Race",
-    caption = "\nResponses only include those that passed our attention test."
+    caption = "\nResponses are based on statistical adjustments."
   )
 
-# Willingness to make a roadway complaint by age
+# Questions by Education
 data %>% 
-	filter(attention == 4, !is.na(roadway_complaint), !is.na(age)) %>% 
-	group_by(age) %>% 
-	summarize(avg_roadway = mean(roadway_complaint)) %>% 
-	ggplot(aes(x = age, y = avg_roadway)) +
-	geom_col() +
-	geom_hline(yintercept = avg_roadway_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "30-39", 
-		y = avg_roadway_complaint, 
-		label = "Avg. Willingness to\nFile Roadway Complaint", 
-		size = 2,
-		hjust = 0
-	) +
-	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Roadway Complaint via 311 by Age",
-    y = "Average Willingess to Make a Roadway Complaint\n(from 0-5)",
-    x = "Age",
-    caption = "\nResponses only include those that passed our attention test."
-  )
-
-# Willingness to make a roadway complaint by education
-data %>% 
-	filter(attention == 4, !is.na(roadway_complaint), !is.na(education)) %>% 
+	filter(!is.na(education)) %>% 
 	group_by(education) %>% 
-	summarize(avg_roadway = mean(roadway_complaint)) %>% 
-	ggplot(aes(x = education, y = avg_roadway)) +
+	summarize(
+ 		`Act. Noise Complaint` = mean(noise_complaint, na.rm = TRUE),
+ 		`Act. Graffiti Complaint` = mean(graffiti_complaint, na.rm = TRUE),
+ 		`Act. Roadway Complaint` = mean(roadway_complaint, na.rm = TRUE),
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Act.")
+	) %>% 
+	ggplot(aes(x = education, y = avg_response)) +
+	geom_hline(aes(yintercept = total_pre_avg), linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_roadway_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "high school graduate", 
-		y = avg_roadway_complaint + .15, 
-		label = "Avg. Willingness to\nFile Roadway Complaint", 
-		size = 2
-	) +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
 	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Roadway Complaint via 311 by Education",
-    y = "Average Willingess to Make a Roadway Complaint\n(from 0-5)",
+	theme(
+		axis.text.x.bottom = element_text(angle = 45, hjust = 1)
+	) +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Education",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
     x = "Education",
-    caption = "\nResponses only include those that passed our attention test."
+    caption = "\nResponses are based on statistical adjustments."
   )
 
-# Willingness to make a roadway complaint by sex
+# Questions by Age
 data %>% 
-	filter(attention == 4, !is.na(roadway_complaint), !is.na(sex)) %>% 
-	group_by(sex) %>% 
-	summarize(avg_roadway = mean(roadway_complaint)) %>% 
-	ggplot(aes(x = sex, y = avg_roadway)) +
+	filter(!is.na(age)) %>% 
+	group_by(age) %>% 
+	summarize(
+ 		`Act. Noise Complaint` = mean(noise_complaint, na.rm = TRUE),
+ 		`Act. Graffiti Complaint` = mean(graffiti_complaint, na.rm = TRUE),
+ 		`Act. Roadway Complaint` = mean(roadway_complaint, na.rm = TRUE),
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Act.")
+	) %>% 
+	ggplot(aes(x = age, y = avg_response)) +
+	geom_hline(aes(yintercept = total_pre_avg), linetype = 2) +
 	geom_col() +
-	geom_hline(yintercept = avg_roadway_complaint, linetype = 2, color = "red") +
-	annotate(
-		"text", 
-		x = "male", 
-		y = avg_roadway_complaint + .1, 
-		label = "Avg. Willingness to File Roadway Complaint",
-		size = 3
-	) +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
 	theme_minimal() +
-  labs(
-    title = "Average Willingness to Make a Roadway Complaint via 311 by Sex",
-    y = "Average Willingess to Make a Roadway Complaint\n(from 0-5)",
-    x = "Sex",
-    caption = "\nResponses only include those that passed our attention test."
+	theme(
+		axis.text.x.bottom = element_text(angle = 45, hjust = 1)
+	) +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Age",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
+    x = "Age",
+    caption = "\nResponses are based on statistical adjustments."
   )
 ```
 
@@ -625,9 +444,9 @@ graffiti_model <- multinom(graffiti_complaint ~ sex + age + race + education, da
 roadway_model <- multinom(roadway_complaint ~ sex + age + race + education, data = data)
 ```
 
-## Population Adjustments
+# Population Adjustments
 ```{r, echo=FALSE}
-pop_est_table <-
+pop_est_all <-
 	data_pop_distr %>% 
  	mutate(
 		familiarity_preds = predict(familiarity_model, data_pop_distr) %>% as.integer(), 
@@ -635,7 +454,10 @@ pop_est_table <-
 		noise_preds = predict(noise_model, data_pop_distr) %>% as.integer(),
  		graffiti_preds = predict(graffiti_model, data_pop_distr) %>% as.integer(),
  		roadway_preds = predict(roadway_model, data_pop_distr) %>% as.integer()
- 	) %>% 
+ 	)
+	
+pop_est_table <-
+	pop_est_all %>% 
 	summarize(
  		`adj_fam` = weighted.mean(familiarity_preds, N),
  		`adj_noise` = weighted.mean(noise_preds, N),
@@ -647,6 +469,24 @@ adj_fam <- pop_est_table %>% pull(adj_fam)
 adj_noise <- pop_est_table %>% pull(adj_noise)
 adj_graffiti <- pop_est_table %>% pull(adj_graffiti)
 adj_roadway <- pop_est_table %>% pull(adj_roadway)
+
+avg_noise_complaint <- 
+	data %>% 
+	filter(attention == 4) %>% 
+	pull(noise_complaint) %>% 
+	mean(na.rm = TRUE)
+
+avg_graffiti_complaint <- 
+	data %>% 
+	filter(attention == 4) %>% 
+	pull(graffiti_complaint) %>% 
+	mean(na.rm = TRUE)
+
+avg_roadway_complaint <- 
+	data %>% 
+	filter(attention == 4) %>% 
+	pull(roadway_complaint) %>% 
+	mean(na.rm = TRUE)
 
 tibble(
 	Metric = c("311 Familiarity", "Willingness to Make a Noise Complaint", "Willingness to Make a Graffiti Complaint", "Willingness to Make a Roadway Complaint"),
@@ -662,3 +502,251 @@ Metric                                    |       Survey Value         | Populat
 Willingness to Make a Noise Complaint     | `r avg_noise_complaint`    | `r adj_noise`
 Willingness to Make a Graffiti Complaint  | `r avg_graffiti_complaint` | `r adj_graffiti`
 Willingness to Make a Roadway Complaint   | `r avg_roadway_complaint`  | `r adj_roadway`
+
+\newpage
+# Analysis on Adjusted Data
+
+\newpage
+```{r, echo=FALSE}
+# Adjusted Familiarity by Demographic Category
+
+# Sex
+pop_est_all %>% 
+	group_by(sex) %>% 
+	summarize(
+		`Adj. Familiarity` = weighted.mean(familiarity_preds, N)
+	) %>% 
+	ggplot(aes(x = sex, y = `Adj. Familiarity`)) +
+	geom_hline(aes(yintercept = c(2, 4)), linetype = 2) +
+	geom_col() +
+	annotate(
+		"text", 
+		x = "female", 
+		y = c(2.2, 3.8),
+		label = c("Somewhat Familiar", "Very Familiar"),
+		hjust = 1
+	) +
+	coord_cartesian(ylim = c(0,4)) +
+	theme_minimal() +
+  labs(
+    title = "Average 311 Familiarity by Sex",
+    y = "Average Familiarity\n(from 0-4)",
+    x = "Sex",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+# Race
+pop_est_all %>% 
+	group_by(race) %>% 
+	summarize(
+		`Adj. Familiarity` = weighted.mean(familiarity_preds, N)
+	) %>% 
+	ggplot(aes(x = race, y = `Adj. Familiarity`)) +
+	geom_hline(aes(yintercept = c(2, 2, 4, 4)), linetype = 2) +
+	geom_col() +
+	annotate(
+		"text", 
+		x = "black", 
+		y = c(2.2, 3.8),
+		label = c("Somewhat Familiar", "Very Familiar"),
+		hjust = 0
+	) +
+	coord_cartesian(ylim = c(0,4)) +
+	theme_minimal() +
+  labs(
+    title = "Average 311 Familiarity by Race",
+    y = "Average Familiarity\n(from 0-4)",
+    x = "Race",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+# Education
+pop_est_all %>% 
+	group_by(education) %>% 
+	summarize(
+		`Adj. Familiarity` = weighted.mean(familiarity_preds, N)
+	) %>% 
+	mutate(
+		education =
+      factor(
+        education,
+        levels = c(
+          "no high school diploma",
+          "high school graduate",
+          "college degree",
+          "postgraduate degree"
+        )
+      )
+	) %>% 
+	ggplot(aes(x = education, y = `Adj. Familiarity`)) +
+	geom_hline(aes(yintercept = c(2, 2, 4, 4)), linetype = 2) +
+	geom_col() +
+	annotate(
+		"text",
+		x = "no high school diploma",
+		y = c(2.2, 3.8),
+		label = c("Somewhat Familiar", "Very Familiar"),
+		hjust = 0
+	) +
+	coord_cartesian(ylim = c(0,4)) +
+	theme_minimal() +
+  labs(
+    title = "Average 311 Familiarity by Education",
+    y = "Average Familiarity\n(from 0-4)",
+    x = "Education",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+# Age
+pop_est_all %>% 
+	group_by(age) %>% 
+	summarize(
+		`Adj. Familiarity` = weighted.mean(familiarity_preds, N)
+	) %>% 
+	ggplot(aes(x = age, y = `Adj. Familiarity`)) +
+	geom_hline(aes(yintercept = c(2, 2, 4, 4, 2, 2, 4, 4)), linetype = 2) +
+	geom_col() +
+	annotate(
+		"text",
+		x = "18-24",
+		y = c(2.2, 3.8),
+		label = c("Somewhat Familiar", "Very Familiar"),
+		hjust = 0
+	) +
+	coord_cartesian(ylim = c(0,4)) +
+	theme_minimal() +
+  labs(
+    title = "Average 311 Familiarity by Age",
+    y = "Average Familiarity\n(from 0-4)",
+    x = "Age",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+```
+
+```{r, echo=FALSE}
+total_avg <-
+	pop_est_all %>% 
+	summarize(
+ 		`Adj. Noise Complaint` = weighted.mean(noise_preds, N),
+ 		`Adj. Graffiti Complaint` = weighted.mean(graffiti_preds, N),
+ 		`Adj. Roadway Complaint` = weighted.mean(roadway_preds, N),
+ 		total_avg = 
+ 			mean(
+ 				`Adj. Noise Complaint`,
+ 				`Adj. Graffiti Complaint`,
+ 				`Adj. Roadway Complaint`
+ 			)
+	) %>% 
+	pull(total_avg)
+
+# Adjusted Questions by Sex
+pop_est_all %>% 
+	group_by(sex) %>% 
+	summarize(
+ 		`Adj. Noise Complaint` = weighted.mean(noise_preds, N),
+ 		`Adj. Graffiti Complaint` = weighted.mean(graffiti_preds, N),
+ 		`Adj. Roadway Complaint` = weighted.mean(roadway_preds, N)
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Adj.")
+	) %>% 
+	ggplot(aes(x = sex, y = avg_response)) +
+	geom_hline(aes(yintercept = total_avg), linetype = 2) +
+	geom_col() +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
+	theme_minimal() +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Sex",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
+    x = "Sex",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+# Adjusted Questions by Race
+pop_est_all %>% 
+	group_by(race) %>% 
+	summarize(
+ 		`Adj. Noise Complaint` = weighted.mean(noise_preds, N),
+ 		`Adj. Graffiti Complaint` = weighted.mean(graffiti_preds, N),
+ 		`Adj. Roadway Complaint` = weighted.mean(roadway_preds, N)
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Adj.")
+	) %>% 
+	ggplot(aes(x = fct_reorder(race, avg_response), y = avg_response)) +
+	geom_hline(aes(yintercept = total_avg), linetype = 2) +
+	geom_col() +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
+	theme_minimal() +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Race",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
+    x = "Race",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+# Adjusted Questions by Education
+pop_est_all %>% 
+	group_by(education) %>% 
+	summarize(
+ 		`Adj. Noise Complaint` = weighted.mean(noise_preds, N),
+ 		`Adj. Graffiti Complaint` = weighted.mean(graffiti_preds, N),
+ 		`Adj. Roadway Complaint` = weighted.mean(roadway_preds, N)
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Adj.")
+	) %>% 
+	ggplot(aes(x = education, y = avg_response)) +
+	geom_hline(aes(yintercept = total_avg), linetype = 2) +
+	geom_col() +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
+	theme_minimal() +
+	theme(
+		axis.text.x.bottom = element_text(angle = 45, hjust = 1)
+	) +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Education",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
+    x = "Education",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+
+#Adjusted Questions by Age
+pop_est_all %>% 
+	group_by(age) %>% 
+	summarize(
+ 		`Adj. Noise Complaint` = weighted.mean(noise_preds, N),
+ 		`Adj. Graffiti Complaint` = weighted.mean(graffiti_preds, N),
+ 		`Adj. Roadway Complaint` = weighted.mean(roadway_preds, N)
+	) %>% 
+	gather(
+		key = "variable",
+		value = "avg_response",
+		starts_with("Adj.")
+	) %>% 
+	ggplot(aes(x = age, y = avg_response)) +
+	geom_hline(aes(yintercept = total_avg), linetype = 2) +
+	geom_col() +
+	coord_cartesian(ylim = c(0,5)) +
+	facet_wrap(~variable, nrow = 1, ncol = 4) +
+	theme_minimal() +
+	theme(
+		axis.text.x.bottom = element_text(angle = 45, hjust = 1)
+	) +
+	labs(
+    title = "Average Willingness to Make a Given Complaint via 311 by Age",
+    y = "Average Willingess to Make a Given Complaint\n(from 0-5)",
+    x = "Age",
+    caption = "\nResponses are based on statistical adjustments."
+  )
+```
+
